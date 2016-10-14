@@ -6,9 +6,10 @@ import praw, pprint, os, shelve, docx, datetime
     
 def configurazione(username):
     '''Crea la cartella per l'username che conterrà tutti i file config e i word'''
-'''la cartella andrebbe chiesta all'utente piuttosto che fatta così a capocchia'''
+#la cartella andrebbe chiesta all'utente piuttosto che fatta così a capocchia'''
     cartella = os.path.join('E:\\Clouding\\Dropbox\\Python\\WPrograms', 'RedditSaved', username)
-    os.makedirs(cartella, exist_ok=True)	#se la cartella già esiste exist_ok=True impedisce che il programma crashi per un errore
+#CHECK: se la cartella già esiste: exist_ok=True impedisce che il programma crashi per un errore
+    os.makedirs(cartella, exist_ok=True)
     os.makedirs(os.path.join(cartella, 'Commenti'), exist_ok=True)
     os.makedirs(os.path.join(cartella, 'Threads'), exist_ok=True)
     os.chdir(cartella)
@@ -21,8 +22,10 @@ def login(x):
     
 def subSalvati(username):
     '''crea il modulo subreddit.py che verrà importato successivamente'''
-    #fileLista = open(os.path.join('E:\\Clouding\\Dropbox\\Python\\WPrograms', 'RedditSaved', 'subreddit.py'), 'a')  #questo file viene sovrascritto da ogni utente, va cancellato sennò fa casino
-    fileLista = open(os.path.join('E:\\Clouding\\Dropbox\\Python\\WPrograms', 'RedditSaved', username, 'subreddit.py'), 'w')  #questo file viene sovrascritto da ogni utente, va cancellato sennò fa casino
+#fileLista = open(os.path.join('E:\\Clouding\\Dropbox\\Python\\WPrograms', 'RedditSaved', 'subreddit.py'), 'a')  
+#questo file viene sovrascritto da ogni utente, va cancellato sennò fa casino
+#CMQ Anche in questo caso bisognerebbe mettere i file in una cartella scelta dall'utente
+    fileLista = open(os.path.join('E:\\Clouding\\Dropbox\\Python\\WPrograms', 'RedditSaved', username, 'subreddit.py'), 'w') 
     subr = r.user.get_saved(sort="new", time='all', limit=None) #trova tutti i thread salvati su reddit dall'utente che ha effettuato il login [vale solo per gli utenti GILDED
     listasub = []
     x = 1
@@ -108,6 +111,7 @@ r = praw.Reddit(user_agent=user_agent)
 username = input('Utente: ')
 
 #Crea la Cartella per l'utente specificato e prende la Password
+#LA CARTELLA LA DEVE SCEGLIERE L'UTENTE CAZZO!
 if not os.path.exists(os.path.join('E:\\Clouding\\Dropbox\\Python\\WPrograms', 'RedditSaved', username)):
     configFile = shelve.open(os.path.join(configurazione(username), 'config'))
     configFile['utente'] = username
