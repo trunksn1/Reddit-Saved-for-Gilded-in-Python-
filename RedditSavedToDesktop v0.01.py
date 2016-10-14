@@ -6,6 +6,7 @@ import praw, pprint, os, shelve, docx, datetime
     
 def configurazione(username):
     '''Crea la cartella per l'username che conterrà tutti i file config e i word'''
+'''la cartella andrebbe chiesta all'utente piuttosto che fatta così a capocchia'''
     cartella = os.path.join('E:\\Clouding\\Dropbox\\Python\\WPrograms', 'RedditSaved', username)
     os.makedirs(cartella, exist_ok=True)	#se la cartella già esiste exist_ok=True impedisce che il programma crashi per un errore
     os.makedirs(os.path.join(cartella, 'Commenti'), exist_ok=True)
