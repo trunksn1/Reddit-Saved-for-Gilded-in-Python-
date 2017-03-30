@@ -3,6 +3,50 @@
 
 import praw, pprint, os, shelve, docx, datetime
    
+def main():	
+    '''DIAMO IL VIA ALLE DANZE: Definizione dell'user Agent'''
+#L'user agent va definito sempre prima di cominciare, e nel modo più descrittivo possibile
+    user_agent = 'SavedReddit to TextFile 0.1 by u/jackn3'  
+	
+    r = praw.Reddit(user_agent=user_agent) 
+    username = input('Utente: ')
+	
+    #Crea la Cartella per l'utente specificato e prende la Password
+    #LA CARTELLA LA DEVE SCEGLIERE L'UTENTE CAZZO!
+    if not os.path.exists(os.path.join(os.sys.path[0], 'RedditSaved', username)):
+        configFile = shelve.open(os.path.join(configurazione(username), 'config'))
+        configFile['utente'] = username
+        configFile['password'] = input('Qual è la password di: %s\n' % username)
+    else:
+        configFile = shelve.open(os.path.join(configurazione(username), 'config'))
+
+    #Login su Reddit.com
+    user = r.login(login(0, configFile), login(1, configFile), disable_warning=True)
+    configFile.close()
+
+    print('L utente %s è un gold? ' %username + str(r.get_redditor(username).is_gold) )
+    #if not os.path.exists(os.path.join('E:\\Clouding\\Dropbox\\Python\\WPrograms', 'RedditSaved', 'subreddit.py')):
+#os.sys.path[0] restituisce il percorso in cui viene lanciato Questo script!
+    if not os.path.exists(os.path.join(os.sys.path[0], 'RedditSaved', username, 'subreddit.py')):
+    	subSalvati(username, r)
+    else:
+        print('Abbiamo già la lista dei subreddit [vedere come poter fare per aggiornarla]')
+
+#Ma perchè creare un modulo e non un normale file? Oppure creare una semplice lista? SEI SCEMO?
+
+#bisogna spostare il file subreddit.py, almeno momentaneamente, nella stessa cartella da cui si lancia lo script per far funzionare 
+#l'import statement!
+    import subreddit
+    print(os.getcwd())
+    print(len(subreddit.listone_sub))
+    print(subreddit.listone_sub)
+
+    if r.get_redditor(username).is_gold:
+        u_gold()
+    else:
+        u_no()
+
+	
 def configurazione(username):
     '''Crea la cartella per l'username che conterrà tutti i file config e i word'''
 #la cartella andrebbe chiesta all'utente piuttosto che fatta così a capocchia'''
@@ -20,24 +64,30 @@ def login(x, configFile):
     return dati[x]        
     
 def subSalvati(username, r):
-    '''crea il modulo subreddit.py che verrà importato successivamente'''
-#fileLista = open(os.path.join('E:\\Clouding\\Dropbox\\Python\\WPrograms', 'RedditSaved', 'subreddit.py'), 'a')  
+ '''crea il modulo subreddit.py che verrà importato successivamente''' 
+#Ma perchè creare un modulo e non un normale file? Oppure creare una semplice lista? SEI SCEMO?
+
 #questo file viene sovrascritto da ogni utente, va cancellato sennò fa casino
 #CMQ Anche in questo caso bisognerebbe mettere i file in una cartella scelta dall'utente
     fileLista = open(os.path.join(os.sys.path[0], 'RedditSaved', username, 'subreddit.py'), 'w') 
-    subr = r.user.get_saved(sort="new", time='all', limit=None) #trova tutti i thread salvati su reddit dall'utente che ha effettuato il login [vale solo per gli utenti GILDED
+
+#trova tutti i thread salvati su reddit dall'utente che ha effettuato il login [vale solo per gli utenti GILDED]
+    subr = r.user.get_saved(sort="new", time='all', limit=None) 
     listasub = []
     x = 1
-#questo loop è stato un dito in culo: cicla tra gli elementi salvati e prende la loro subreddit di origine e la schiaffa nella lista: listasub creata poco fa, se la subreddit già è stata inserita viene saltata.
+	
+#questo loop è stato un dito in culo: cicla tra gli elementi salvati e prende la loro subreddit di origine e la schiaffa nella lista:
+#listasub creata poco fa, se la subreddit già è stata inserita viene saltata.
     for elem in subr:    
         while str(elem.subreddit) not in listasub:
             listasub.append(str(elem.subreddit)) 
             print('%s Aggiungo alla lista: r/' % x + str(elem.subreddit))
             x += 1
-    fileLista.write('listone_sub =' + pprint.pformat(listasub) + '\n')    #la lista creata viene copiata in un file con .pformat() che così crea un MODULO da poter importare
+
+#la lista creata viene copiata in un file con .pformat() che così crea un MODULO da poter importare ##MA PERCHE'??
+    fileLista.write('listone_sub =' + pprint.pformat(listasub) + '\n')
     fileLista.close()
     print('Fatto')
-    
     return fileLista
 
 def u_gold():	#Crea il tutto per gli utenti con Reddit Gold
@@ -101,47 +151,6 @@ def u_no():	#Crea il tutto per gli utenti senza Reddit Gold
 			d.add_page_break()
 			d.save(os.path.join(os.sys.path[0], 'RedditSaved', username, 'Threads', 'TT%s.docx' %str(link.subreddit)))
 						
-	
-	
-def main():	
-    #DIAMO IL VIA ALLE DANZE: Definizione dell'user Agent
-    user_agent = 'SavedReddit to TextFile 0.1 by u/jackn3'  #L'user agent va definito sempre prima di cominciare, e nel modo più descrittivo possibile
-    r = praw.Reddit(user_agent=user_agent) 
-    username = input('Utente: ')
-    #Crea la Cartella per l'utente specificato e prende la Password
-    #LA CARTELLA LA DEVE SCEGLIERE L'UTENTE CAZZO!
-    if not os.path.exists(os.path.join(os.sys.path[0], 'RedditSaved', username)):
-         
-        configFile = shelve.open(os.path.join(configurazione(username), 'config'))
-        configFile['utente'] = username
-        configFile['password'] = input('Qual è la password di: %s\n' % username)
-    else:
-        configFile = shelve.open(os.path.join(configurazione(username), 'config'))
 
-    #Login su Reddit.com
-    user = r.login(login(0, configFile), login(1, configFile), disable_warning=True)
-    configFile.close()
-
-    print('L utente %s è un gold? ' %username + str(r.get_redditor(username).is_gold) )
-    #if not os.path.exists(os.path.join('E:\\Clouding\\Dropbox\\Python\\WPrograms', 'RedditSaved', 'subreddit.py')):
-    if not os.path.exists(os.path.join(os.sys.path[0], 'RedditSaved', username, 'subreddit.py')):
-    	subSalvati(username, r)
-    else:
-        print('Abbiamo già la lista dei subreddit [vedere come poter fare per aggiornarla]')
-
-
-#bisogna spostare il file subreddit.py, almeno momentaneamente, nella stessa cartella da cui si lancia lo script per far funzionare l'import statement!
-    import subreddit
-    print(os.getcwd())
-    print(len(subreddit.listone_sub))
-    print(subreddit.listone_sub)
-
-    if r.get_redditor(username).is_gold:
-        u_gold()
-    else:
-        u_no()
-
-
-	#pprint.pprint(links)
 if __name__ == "__main__":
 	main()
