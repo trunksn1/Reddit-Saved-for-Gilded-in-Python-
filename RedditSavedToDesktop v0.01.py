@@ -125,7 +125,7 @@ def u_gold(r, username):	#Crea il tutto per gli utenti con Reddit Gold
 				t+=1
 
 	
-	
+#Va migliorato molto, crea tantissimi file inutili, perchè non divisi per subreddit! tutti uguali tra di loro!	
 def u_no(r, username):	#Crea il tutto per gli utenti senza Reddit Gold
 	s = r.user.get_saved(sort="new", time='all', limit=None)#, params={'sr': subreddit.listone_sub[x]})
 	o = 0
