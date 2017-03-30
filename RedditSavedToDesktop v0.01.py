@@ -2,12 +2,11 @@
 #RedditSavedToDesktop.py    porta i thread salvati sul pc
 
 import praw, pprint, os, shelve, docx, datetime
-
-    
+   
 def configurazione(username):
     '''Crea la cartella per l'username che conterrà tutti i file config e i word'''
 #la cartella andrebbe chiesta all'utente piuttosto che fatta così a capocchia'''
-    cartella = os.path.join(sys.path[0], 'RedditSaved', username)
+    cartella = os.path.join(os.sys.path[0], 'RedditSaved', username)
 #CHECK: se la cartella già esiste: exist_ok=True impedisce che il programma crashi per un errore
     os.makedirs(cartella, exist_ok=True)
     os.makedirs(os.path.join(cartella, 'Commenti'), exist_ok=True)
@@ -15,17 +14,17 @@ def configurazione(username):
     os.chdir(cartella)
     return cartella
 
-def login(x):
+def login(x, configFile):
     '''Usa i dati nei file shelve per effettuare il login'''
     dati = [configFile['utente'], configFile['password']]
     return dati[x]        
     
-def subSalvati(username):
+def subSalvati(username, r):
     '''crea il modulo subreddit.py che verrà importato successivamente'''
 #fileLista = open(os.path.join('E:\\Clouding\\Dropbox\\Python\\WPrograms', 'RedditSaved', 'subreddit.py'), 'a')  
 #questo file viene sovrascritto da ogni utente, va cancellato sennò fa casino
 #CMQ Anche in questo caso bisognerebbe mettere i file in una cartella scelta dall'utente
-    fileLista = open(os.path.join(sys.path[0], 'RedditSaved', username, 'subreddit.py'), 'w') 
+    fileLista = open(os.path.join(os.sys.path[0], 'RedditSaved', username, 'subreddit.py'), 'w') 
     subr = r.user.get_saved(sort="new", time='all', limit=None) #trova tutti i thread salvati su reddit dall'utente che ha effettuato il login [vale solo per gli utenti GILDED
     listasub = []
     x = 1
@@ -38,6 +37,7 @@ def subSalvati(username):
     fileLista.write('listone_sub =' + pprint.pformat(listasub) + '\n')    #la lista creata viene copiata in un file con .pformat() che così crea un MODULO da poter importare
     fileLista.close()
     print('Fatto')
+    
     return fileLista
 
 def u_gold():	#Crea il tutto per gli utenti con Reddit Gold
@@ -55,7 +55,7 @@ def u_gold():	#Crea il tutto per gli utenti con Reddit Gold
 				body = d.add_paragraph(link.body).style = 'Body Text 3' #----> QUELLO CHE c'è scritto
 				d.add_paragraph('Autore: ' + str(link.author))
 				d.add_page_break()
-				d.save(os.path.join(sys.path[0], 'RedditSaved', username, 'Commenti', 'CC%s.docx' %str(link.subreddit)))
+				d.save(os.path.join(os.sys.path[0], 'RedditSaved', username, 'Commenti', 'CC%s.docx' %str(link.subreddit)))
 				c += 1
 			else:
 				print('%s. Thread in: ' %t, link.subreddit)
@@ -67,7 +67,7 @@ def u_gold():	#Crea il tutto per gli utenti con Reddit Gold
 				d.add_paragraph(link.selftext).style = 'Body Text 3'            
 				d.add_paragraph('Autore: ' + str(link.author))
 				d.add_page_break()
-				d.save(os.path.join(sys.path[0], 'RedditSaved', username, 'Threads', 'TT%s.docx' %str(link.subreddit)))
+				d.save(os.path.join(os.sys.path[0], 'RedditSaved', username, 'Threads', 'TT%s.docx' %str(link.subreddit)))
 				t+=1
 
 	
@@ -87,7 +87,7 @@ def u_no():	#Crea il tutto per gli utenti senza Reddit Gold
 			body = d.add_paragraph(link.body).style = 'Body Text 3' #----> QUELLO CHE c'è scritto
 			d.add_paragraph('Autore: ' + str(link.author))
 			d.add_page_break()
-			d.save(os.path.join(sys.path[0], 'RedditSaved', username, 'Commenti', 'CC%s.docx' %str(link.subreddit)))		
+			d.save(os.path.join(os.sys.path[0], 'RedditSaved', username, 'Commenti', 'CC%s.docx' %str(link.subreddit)))		
 		else:
 			print('%s. Thread in: ' %o, link.subreddit)	
 			d.add_paragraph(link.title).style = 'Title'
@@ -99,53 +99,47 @@ def u_no():	#Crea il tutto per gli utenti senza Reddit Gold
 			d.add_paragraph(link.selftext).style = 'Body Text 3'            
 			d.add_paragraph('Autore: ' + str(link.author))
 			d.add_page_break()
-			d.save(os.path.join(sys.path[0], 'RedditSaved', username, 'Threads', 'TT%s.docx' %str(link.subreddit)))
+			d.save(os.path.join(os.sys.path[0], 'RedditSaved', username, 'Threads', 'TT%s.docx' %str(link.subreddit)))
 						
 	
 	
 def main():	
-	#DIAMO IL VIA ALLE DANZE: Definizione dell'user Agent
-	user_agent = 'SavedReddit to TextFile 0.1 by u/jackn3'  #L'user agent va definito sempre prima di cominciare, e nel modo più descrittivo possibile
-	r = praw.Reddit(user_agent=user_agent) 
+    #DIAMO IL VIA ALLE DANZE: Definizione dell'user Agent
+    user_agent = 'SavedReddit to TextFile 0.1 by u/jackn3'  #L'user agent va definito sempre prima di cominciare, e nel modo più descrittivo possibile
+    r = praw.Reddit(user_agent=user_agent) 
+    username = input('Utente: ')
+    #Crea la Cartella per l'utente specificato e prende la Password
+    #LA CARTELLA LA DEVE SCEGLIERE L'UTENTE CAZZO!
+    if not os.path.exists(os.path.join(os.sys.path[0], 'RedditSaved', username)):
+         
+        configFile = shelve.open(os.path.join(configurazione(username), 'config'))
+        configFile['utente'] = username
+        configFile['password'] = input('Qual è la password di: %s\n' % username)
+    else:
+        configFile = shelve.open(os.path.join(configurazione(username), 'config'))
 
-	username = input('Utente: ')
+    #Login su Reddit.com
+    user = r.login(login(0, configFile), login(1, configFile), disable_warning=True)
+    configFile.close()
 
-	#Crea la Cartella per l'utente specificato e prende la Password
-	#LA CARTELLA LA DEVE SCEGLIERE L'UTENTE CAZZO!
-	if not os.path.exists(os.path.join(sys.path[0], 'RedditSaved', username)):
-		configFile = shelve.open(os.path.join(configurazione(username), 'config'))
-		configFile['utente'] = username
-		configFile['password'] = input('Qual è la password di: %s\n' % username)
-	else:
-		configFile = shelve.open(os.path.join(configurazione(username), 'config'))
-
-
-	#Login su Reddit.com
-	user = r.login(login(0), login(1), disable_warning=True)
-	configFile.close()
-
-	print('L utente %s è un gold? ' %username + str(r.get_redditor(username).is_gold) )
-
-
-	#if not os.path.exists(os.path.join('E:\\Clouding\\Dropbox\\Python\\WPrograms', 'RedditSaved', 'subreddit.py')):
-	if not os.path.exists(os.path.join(sys.path[0], 'RedditSaved', username, 'subreddit.py')):
-		subSalvati(username)
-	else:
-		print('Abbiamo già la lista dei subreddit [vedere come poter fare per aggiornarla]')
+    print('L utente %s è un gold? ' %username + str(r.get_redditor(username).is_gold) )
+    #if not os.path.exists(os.path.join('E:\\Clouding\\Dropbox\\Python\\WPrograms', 'RedditSaved', 'subreddit.py')):
+    if not os.path.exists(os.path.join(os.sys.path[0], 'RedditSaved', username, 'subreddit.py')):
+    	subSalvati(username, r)
+    else:
+        print('Abbiamo già la lista dei subreddit [vedere come poter fare per aggiornarla]')
 
 
+#bisogna spostare il file subreddit.py, almeno momentaneamente, nella stessa cartella da cui si lancia lo script per far funzionare l'import statement!
+    import subreddit
+    print(os.getcwd())
+    print(len(subreddit.listone_sub))
+    print(subreddit.listone_sub)
 
-	import subreddit
-
-
-	print(os.getcwd())
-	print(len(subreddit.listone_sub))
-	print(subreddit.listone_sub)
-
-	if r.get_redditor(username).is_gold:
-		u_gold()
-	else:
-		u_no()
+    if r.get_redditor(username).is_gold:
+        u_gold()
+    else:
+        u_no()
 
 
 	#pprint.pprint(links)
