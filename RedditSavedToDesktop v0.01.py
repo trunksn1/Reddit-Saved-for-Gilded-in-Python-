@@ -36,15 +36,16 @@ def main():
 
 #bisogna spostare il file subreddit.py, almeno momentaneamente, nella stessa cartella da cui si lancia lo script per far funzionare 
 #l'import statement!
-    import subreddit
-    print(os.getcwd())
-    print(len(subreddit.listone_sub))
-    print(subreddit.listone_sub)
+    
 
     if r.get_redditor(username).is_gold:
-        u_gold()
+        import subreddit
+        print(os.getcwd())
+        print(len(subreddit.listone_sub))
+        print(subreddit.listone_sub)
+        u_gold(r, username)
     else:
-        u_no()
+        u_no(r, username)
 
 	
 def configurazione(username):
@@ -63,26 +64,26 @@ def login(x, configFile):
     dati = [configFile['utente'], configFile['password']]
     return dati[x]        
     
+'''crea il modulo subreddit.py che verrà importato successivamente'''
 def subSalvati(username, r):
- '''crea il modulo subreddit.py che verrà importato successivamente''' 
-#Ma perchè creare un modulo e non un normale file? Oppure creare una semplice lista? SEI SCEMO?
 
-#questo file viene sovrascritto da ogni utente, va cancellato sennò fa casino
-#CMQ Anche in questo caso bisognerebbe mettere i file in una cartella scelta dall'utente
-    fileLista = open(os.path.join(os.sys.path[0], 'RedditSaved', username, 'subreddit.py'), 'w') 
+    fileLista = open(os.path.join(os.sys.path[0], 'RedditSaved', username, 'subreddit.py'), 'w')
+#Ma perchè creare un modulo e non un normale file? Oppure creare una semplice lista? SEI SCEMO?
+ 
+ 
 
 #trova tutti i thread salvati su reddit dall'utente che ha effettuato il login [vale solo per gli utenti GILDED]
     subr = r.user.get_saved(sort="new", time='all', limit=None) 
     listasub = []
     x = 1
-	
+
 #questo loop è stato un dito in culo: cicla tra gli elementi salvati e prende la loro subreddit di origine e la schiaffa nella lista:
 #listasub creata poco fa, se la subreddit già è stata inserita viene saltata.
     for elem in subr:    
-        while str(elem.subreddit) not in listasub:
-            listasub.append(str(elem.subreddit)) 
-            print('%s Aggiungo alla lista: r/' % x + str(elem.subreddit))
-            x += 1
+	    while str(elem.subreddit) not in listasub:
+		    listasub.append(str(elem.subreddit)) 
+		    print('%s Aggiungo alla lista: r/' % x + str(elem.subreddit))
+		    x += 1
 
 #la lista creata viene copiata in un file con .pformat() che così crea un MODULO da poter importare ##MA PERCHE'??
     fileLista.write('listone_sub =' + pprint.pformat(listasub) + '\n')
@@ -90,7 +91,10 @@ def subSalvati(username, r):
     print('Fatto')
     return fileLista
 
-def u_gold():	#Crea il tutto per gli utenti con Reddit Gold
+#Bisognerebbe creare un file unico per subreddit in cui mettere il thread, se ci sono anche commenti salvati nel thread
+#metterli sotto!
+
+def u_gold(r, username):	#Crea il tutto per gli utenti con Reddit Gold
 	for x in range(len(subreddit.listone_sub)):
 		s = r.user.get_saved(sort="new", time='all', limit=None, params={'sr': subreddit.listone_sub[x]})
 		c = 1
@@ -122,7 +126,7 @@ def u_gold():	#Crea il tutto per gli utenti con Reddit Gold
 
 	
 	
-def u_no():	#Crea il tutto per gli utenti senza Reddit Gold
+def u_no(r, username):	#Crea il tutto per gli utenti senza Reddit Gold
 	s = r.user.get_saved(sort="new", time='all', limit=None)#, params={'sr': subreddit.listone_sub[x]})
 	o = 0
 	d = docx.Document()
