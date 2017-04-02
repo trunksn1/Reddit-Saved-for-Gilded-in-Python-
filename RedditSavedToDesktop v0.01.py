@@ -25,17 +25,20 @@ def main():
     configFile.close()
 
     print('L utente %s è un gold? ' %username + str(r.get_redditor(username).is_gold) )
+    
     #if not os.path.exists(os.path.join('E:\\Clouding\\Dropbox\\Python\\WPrograms', 'RedditSaved', 'subreddit.py')):
 #os.sys.path[0] restituisce il percorso in cui viene lanciato Questo script!
     if not os.path.exists(os.path.join(os.sys.path[0], 'RedditSaved', username, 'subreddit.py')):
-    	subSalvati(username, r)
+    	dizsub = subSalvati(username, r)
     else:
         print('Abbiamo già la lista dei subreddit [vedere come poter fare per aggiornarla]')
+
 
 #Ma perchè creare un modulo e non un normale file? Oppure creare una semplice lista? SEI SCEMO?
 
 #bisogna spostare il file subreddit.py, almeno momentaneamente, nella stessa cartella da cui si lancia lo script per far funzionare 
 #l'import statement!
+    print(dizsub)
     
 
     if r.get_redditor(username).is_gold:
@@ -45,7 +48,7 @@ def main():
         print(subreddit.listone_sub)
         u_gold(r, username)
     else:
-        u_no(r, username)
+        u_no(r, username, dizsub)
 
 	
 def configurazione(username):
@@ -64,32 +67,39 @@ def login(x, configFile):
     dati = [configFile['utente'], configFile['password']]
     return dati[x]        
     
-'''crea il modulo subreddit.py che verrà importato successivamente'''
-def subSalvati(username, r):
 
+def subSalvati(username, r):
+    '''crea il modulo subreddit.py che verrà importato successivamente'''
     fileLista = open(os.path.join(os.sys.path[0], 'RedditSaved', username, 'subreddit.py'), 'w')
 #Ma perchè creare un modulo e non un normale file? Oppure creare una semplice lista? SEI SCEMO?
  
  
 
 #trova tutti i thread salvati su reddit dall'utente che ha effettuato il login [vale solo per gli utenti GILDED]
-    subr = r.user.get_saved(sort="new", time='all', limit=None) 
-    listasub = []
+    saves = r.user.get_saved(sort="new", time='all', limit=None) 
+    #listasub = []
+    dizsub = {}
     x = 1
 
-#questo loop è stato un dito in culo: cicla tra gli elementi salvati e prende la loro subreddit di origine e la schiaffa nella lista:
-#listasub creata poco fa, se la subreddit già è stata inserita viene saltata.
-    for elem in subr:    
-	    while str(elem.subreddit) not in listasub:
-		    listasub.append(str(elem.subreddit)) 
-		    print('%s Aggiungo alla lista: r/' % x + str(elem.subreddit))
-		    x += 1
-
+#questo loop è stato un dito in culo: cicla tra gli elementi salvati e prende il loro subreddit e lo schiaffa nella lista:
+#listasub creata poco fa, se il subreddit è già stato inserito, viene saltata.
+    for elem in saves:
+	    subr = str(elem.subreddit)
+	    if subr in dizsub:
+		    dizsub[subr].append([type(elem), elem]) #elem.title, elem.permalink,  ]
+	    else:
+		    dizsub[subr] = []        
+		#listasub.append(str(elem.subreddit))
+	    print('%s Aggiungo alla lista: r/' % x + str(elem.subreddit))
+	    x += 1
+    
 #la lista creata viene copiata in un file con .pformat() che così crea un MODULO da poter importare ##MA PERCHE'??
-    fileLista.write('listone_sub =' + pprint.pformat(listasub) + '\n')
-    fileLista.close()
+    
+    #fileLista.write('listone_sub =' + pprint.pformat(listasub) + '\n')
+    #fileLista.close()
+    
     print('Fatto')
-    return fileLista
+    return dizsub
 
 #Bisognerebbe creare un file unico per subreddit in cui mettere il thread, se ci sono anche commenti salvati nel thread
 #metterli sotto!
@@ -126,34 +136,43 @@ def u_gold(r, username):	#Crea il tutto per gli utenti con Reddit Gold
 
 	
 #Va migliorato molto, crea tantissimi file inutili, perchè non divisi per subreddit! tutti uguali tra di loro!	
-def u_no(r, username):	#Crea il tutto per gli utenti senza Reddit Gold
-	s = r.user.get_saved(sort="new", time='all', limit=None)#, params={'sr': subreddit.listone_sub[x]})
-	o = 0
-	d = docx.Document()
-	for link in s:
-		o += 1 
-		if type(link) == praw.objects.Comment:
-			print('%s. Commento in: ' %o, link.subreddit)
-			d.add_paragraph(str(link.submission)).style = 'Title'
-			d.add_paragraph('Pubblicato in: ' + str(link.subreddit)).style = 'caption'
-			d.add_paragraph(link.permalink).style = 'caption'
-			d.add_paragraph('Pubblicato il: (aaaa/mm/dd)' + str(datetime.date.fromtimestamp(link.created)))
-			body = d.add_paragraph(link.body).style = 'Body Text 3' #----> QUELLO CHE c'è scritto
-			d.add_paragraph('Autore: ' + str(link.author))
-			d.add_page_break()
-			d.save(os.path.join(os.sys.path[0], 'RedditSaved', username, 'Commenti', 'CC%s.docx' %str(link.subreddit)))		
-		else:
-			print('%s. Thread in: ' %o, link.subreddit)	
-			d.add_paragraph(link.title).style = 'Title'
-			d.add_paragraph('Pubblicato in: ' + str(link.subreddit)).style = 'caption'
-			d.add_paragraph(link.short_link).style = 'caption' #---> link del post su reddit
-			d.add_paragraph(link.url).style = 'caption' #----> link del post a cui reddit si riferisce (es. imgur.com)
-			#d.add_paragraph(link.short_link).style = 'caption' #--->boh
-			d.add_paragraph('Pubblicato il: (aaaa/mm/dd)' + str(datetime.date.fromtimestamp(link.created)))
-			d.add_paragraph(link.selftext).style = 'Body Text 3'            
-			d.add_paragraph('Autore: ' + str(link.author))
-			d.add_page_break()
-			d.save(os.path.join(os.sys.path[0], 'RedditSaved', username, 'Threads', 'TT%s.docx' %str(link.subreddit)))
+def u_no(r, username, dizsub):	#Crea il tutto per gli utenti senza Reddit Gold
+	
+	#dizsub = {subreddit : [[link, tipo], [link, tipo]], subreddit : [[link, tipo], [link, tipo]]}
+	
+	#cicla per ogni chiave del dizionario, che corrispondono alle singole subreddit.
+	for sub in dizsub:	
+		#s = r.user.get_saved(sort="new", time='all', limit=None)#, params={'sr': subreddit.listone_sub[x]})
+		o = 0
+		d = docx.Document()
+		for num_lista in range(len(dizsub[sub])):
+			o += 1 
+			link = dizsub[sub][num_lista]
+			#if dizsub[sub][num_lista][0] == praw.objects.Submission:
+			if link[0] == praw.objects.Submission:	
+				print('%s. Thread in: ' %o, sub)	
+				d.add_paragraph(link[1].title).style = 'Title'
+				d.add_paragraph('Pubblicato in: /r/' + str(sub)).style = 'caption'
+				d.add_paragraph('Il giorno: (aaaa/mm/dd) ' + str(datetime.date.fromtimestamp(link[1].created))).style = 'caption'
+				d.add_paragraph('Autore: ' + str(link[1].author))
+				d.add_paragraph(link[1].short_link).style = 'caption' #---> link del post su reddit
+				d.add_paragraph(link[1].url).style = 'caption' #----> link del post a cui reddit si riferisce (es. imgur.com)
+				d.add_paragraph(link[1].selftext).style = 'Body Text 3'            
+				d.add_page_break()
+				d.save(os.path.join(os.sys.path[0], 'RedditSaved', username, 'Threads', 'TT%s.docx' %str(sub)))
+				
+				
+			else:
+				print('%s. Commento in: ' %o, sub)
+				d.add_paragraph(str(link[1].submission)).style = 'Title'
+				d.add_paragraph('Pubblicato in: ' + str(sub)).style = 'caption'
+				d.add_paragraph(link[1].permalink).style = 'caption'
+				d.add_paragraph('Pubblicato il: (aaaa/mm/dd)' + str(datetime.date.fromtimestamp(link[1].created)))
+				body = d.add_paragraph(link[1].body).style = 'Body Text 3' #----> QUELLO CHE c'è scritto
+				d.add_paragraph('Autore: ' + str(link[1].author))
+				d.add_page_break()
+				d.save(os.path.join(os.sys.path[0], 'RedditSaved', username, 'Commenti', 'CC%s.docx' %str(sub)))		
+			
 						
 
 if __name__ == "__main__":
