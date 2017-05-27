@@ -1,6 +1,6 @@
 #! python3
 #RedditSavedToDesktop.py    porta i thread salvati sul pc
-
+#PRAW VECCHIO DA AGGIORNARE v3.0
 import praw, pprint, os, shelve, docx, datetime
    
 def main():	
